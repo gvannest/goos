@@ -1,0 +1,29 @@
+version: '3.1'
+
+services:
+  openfire:
+    image: nasqueron/openfire
+    container_name: openfire
+    ports:
+      - "9090:9090"
+      - "5222:5222"
+    volumes:
+      - openfire_data:/var/lib/openfire
+      - openfire_conf:/etc/openfire
+      - openfire_logs:/var/log/openfire
+
+  sniper-auction:
+    build:
+      context: sniper-auction  # Ensure this points to the root directory containing your Dockerfile
+      dockerfile: Dockerfile  # Explicitly specify the Dockerfile if needed
+    container_name: sniper-auction
+    depends_on:
+      - openfire
+    environment:
+      - XMPP_SERVER=openfire
+      - XMPP_PORT=5222
+
+volumes:
+  openfire_data:
+  openfire_conf:
+  openfire_logs:
