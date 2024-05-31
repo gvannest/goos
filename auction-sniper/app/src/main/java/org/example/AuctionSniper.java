@@ -8,7 +8,7 @@ public class AuctionSniper {
         return "Hello World!";
     }
 
-    public static void main(String[] args) {
+    public static void main(String... args) {
         System.out.println(new AuctionSniper().getGreeting());
     }
 }
