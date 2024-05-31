@@ -24,24 +24,33 @@ dependencies {
     // This dependency is used by the application.
     implementation(libs.guava)
 
-    implementation("org.igniterealtime.smack:smack-java8:4.4.0")
-    // Optional for XMPPTCPConnection
-    implementation("org.igniterealtime.smack:smack-tcp:4.4.0")
+    implementation("org.igniterealtime.smack:smack-core:4.5.0-alpha3")
+
+    // Over tcp connection
+    implementation("org.igniterealtime.smack:smack-tcp:4.5.0-alpha3")
+
+    testImplementation("com.googlecode.windowlicker:windowlicker-swing:r268")
 }
 
 // Apply a specific Java toolchain to ease working on different environments.
 java {
     toolchain {
-        languageVersion = JavaLanguageVersion.of(21)
+        languageVersion = JavaLanguageVersion.of(22)
     }
 }
 
 application {
     // Define the main class for the application.
-    mainClass = "org.example.App"
+    mainClass = "org.example.AuctionSniper"
 }
 
 tasks.named<Test>("test") {
     // Use JUnit Platform for unit tests.
     useJUnitPlatform()
+}
+
+tasks.jar {
+    manifest {
+        attributes["Main-Class"] = "org.example.AuctionSniper"
+    }
 }
