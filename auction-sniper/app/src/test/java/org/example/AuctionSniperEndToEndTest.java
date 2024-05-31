@@ -4,13 +4,14 @@
 package org.example;
 
 import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
 
 class AuctionSniperEndToEndTest {
 
     private final FakeAuctionServer auction = new FakeAuctionServer("item-54321");
-    private final ApplicationRunner application = new AppicationRunner();
+    private final ApplicationRunner application = new ApplicationRunner();
 
     @Test
     void sniperJoinsAuctionUntilAuctionCloses() {
@@ -21,12 +22,12 @@ class AuctionSniperEndToEndTest {
         application.showsSniperHasLostAuction();    // Step 5
     }
 
-    @AfterAll
+    @AfterEach
     public static void stopAuction() {
         auction.stop();
     }
 
-    @AfterAll
+    @AfterEach
     public static void stopApplication() {
         application.stop();
     }

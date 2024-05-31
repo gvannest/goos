@@ -24,10 +24,13 @@ dependencies {
     // This dependency is used by the application.
     implementation(libs.guava)
 
-    implementation("org.igniterealtime.smack:smack-core:4.5.0-alpha3")
-
+    implementation("org.igniterealtime.smack:smack-core:4.4.8")
     // Over tcp connection
-    implementation("org.igniterealtime.smack:smack-tcp:4.5.0-alpha3")
+    implementation("org.igniterealtime.smack:smack-tcp:4.4.8")
+     // Optional for XMPP-IM (RFC 6121) support (Roster, Threaded Chats, …)
+   implementation("org.igniterealtime.smack:smack-im:4.4.8")
+   // Optional for XMPP extensions support
+   implementation("org.igniterealtime.smack:smack-extensions:4.4.8")
 
     testImplementation("com.googlecode.windowlicker:windowlicker-swing:r268")
 }
