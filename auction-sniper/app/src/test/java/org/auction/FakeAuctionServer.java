@@ -2,10 +2,11 @@
  * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
  * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
  */
-package org.example;
+package org.auction;
 
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
+import java.net.InetAddress;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
@@ -18,16 +19,14 @@ import org.jivesoftware.smack.packet.StanzaBuilder;
 import org.jivesoftware.smack.tcp.XMPPTCPConnection;
 import org.jivesoftware.smack.tcp.XMPPTCPConnectionConfiguration;
 import org.jxmpp.jid.EntityBareJid;
-import org.jxmpp.stringprep.XmppStringprepException;
 
 class FakeAuctionServer {
-
     private final SingleMessageListener messageListener = new SingleMessageListener();
 
     private static final String ITEM_ID_AS_LOGIN = "auction-%s";
-    private static final String AUCTION_PASSWORD = "auction-%s";
+    private static final String AUCTION_PASSWORD = "auction";
     private static final String XMPP_HOSTNAME = "localhost";
-    private static final int XMPP_PORT = 5222; // Default XMPP port
+    private static final int XMPP_PORT = 5222;
 
     private final String itemId;
     private final XMPPTCPConnection connection;
@@ -37,17 +36,18 @@ class FakeAuctionServer {
     public FakeAuctionServer(String itemId) {
         this.itemId = itemId;
         try {
+            InetAddress hostAddress = InetAddress.getByName(XMPP_HOSTNAME);
             XMPPTCPConnectionConfiguration config = XMPPTCPConnectionConfiguration.builder()
-                    .setHost(XMPP_HOSTNAME)
+                    .setHostAddress(hostAddress)
                     .setPort(XMPP_PORT)
-                    .setXmppDomain(XMPP_HOSTNAME) // Replace with your domain
-                    .setUsernameAndPassword(String.format(ITEM_ID_AS_LOGIN, itemId), AUCTION_PASSWORD) // Optional: Set
-                                                                                                       // username and
-                                                                                                       // password if
-                                                                                                       // needed
+                    .setXmppDomain(XMPP_HOSTNAME)
+                    .setUsernameAndPassword(String.format(ITEM_ID_AS_LOGIN, itemId), AUCTION_PASSWORD)
+                    .setSecurityMode(XMPPTCPConnectionConfiguration.SecurityMode.disabled) // Disable security for local
+                                                                                           // development
                     .build();
             this.connection = new XMPPTCPConnection(config);
-        } catch (XmppStringprepException e) {
+
+        } catch (Exception e) {
             throw new RuntimeException(e);
         }
 
@@ -110,7 +110,7 @@ class SingleMessageListener implements IncomingChatMessageListener {
 
     public void receivesAMessage(Consumer<Chat> setAuctionServerChatSession) throws InterruptedException {
         var message = messages.poll(5, TimeUnit.SECONDS);
-        assertNotNull(message);
+        assertNotNull(message.body);
         setAuctionServerChatSession.accept(message.chat);
     }
 

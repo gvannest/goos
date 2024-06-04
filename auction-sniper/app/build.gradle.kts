@@ -28,9 +28,12 @@ dependencies {
     // Over tcp connection
     implementation("org.igniterealtime.smack:smack-tcp:4.4.8")
      // Optional for XMPP-IM (RFC 6121) support (Roster, Threaded Chats, …)
-   implementation("org.igniterealtime.smack:smack-im:4.4.8")
-   // Optional for XMPP extensions support
-   implementation("org.igniterealtime.smack:smack-extensions:4.4.8")
+    implementation("org.igniterealtime.smack:smack-im:4.4.8")
+    // Optional for XMPP extensions support
+    implementation("org.igniterealtime.smack:smack-extensions:4.4.8")
+    implementation("org.igniterealtime.smack:smack-xmlparser-xpp3:4.4.8") // or the latest version
+    implementation("org.igniterealtime.smack:smack-resolver-minidns:4.4.8")
+    implementation("org.igniterealtime.smack:smack-java8:4.4.8")
 
     testImplementation("com.googlecode.windowlicker:windowlicker-swing:r268")
 }
@@ -44,7 +47,7 @@ java {
 
 application {
     // Define the main class for the application.
-    mainClass = "org.example.AuctionSniper"
+    mainClass = "org.auction.Main"
 }
 
 tasks.named<Test>("test") {
@@ -54,6 +57,6 @@ tasks.named<Test>("test") {
 
 tasks.jar {
     manifest {
-        attributes["Main-Class"] = "org.example.AuctionSniper"
+        attributes["Main-Class"] = "org.auction.Main"
     }
 }

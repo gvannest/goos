@@ -2,7 +2,11 @@
  * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
  * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
  */
-package org.example;
+package org.auction;
+
+import static org.hamcrest.Matchers.equalTo;
+
+import org.auction.ui.MainWindow;
 
 import com.objogate.wl.swing.AWTEventQueueProber;
 import com.objogate.wl.swing.driver.JFrameDriver;
@@ -21,7 +25,7 @@ class ApplicationRunner {
             @Override
             public void run() {
                 try {
-                    AuctionSniper.main(XMPP_HOSTNAME, SNIPER_ID, SNIPER_PASSWORD, auction.getItemId());
+                    Main.main(XMPP_HOSTNAME, SNIPER_ID, SNIPER_PASSWORD, auction.getItemId());
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
@@ -30,11 +34,11 @@ class ApplicationRunner {
         thread.setDaemon(true);
         thread.start();
         driver = new AuctionSniperDriver(1000);
-        driver.showsSniperStatus(AuctionSniper.STATUS_JOINING);
+        driver.showsSniperStatus("Joining");
     }
 
     public void showsSniperHasLostAuction() {
-        driver.showsSniperStatus(AuctionSniper.STATUS_LOST);
+        driver.showsSniperStatus("Lost");
     }
 
     public void stop() {
@@ -47,6 +51,7 @@ class ApplicationRunner {
 
 class AuctionSniperDriver extends JFrameDriver {
 
+    @SuppressWarnings("unchecked")
     protected AuctionSniperDriver(int timeoutMillis) {
         super(
                 new GesturePerformer(),
@@ -54,7 +59,8 @@ class AuctionSniperDriver extends JFrameDriver {
                 new AWTEventQueueProber(timeoutMillis, 100));
     }
 
+    @SuppressWarnings("unchecked")
     protected void showsSniperStatus(String statusText) {
-        new JLabelDriver(this, named(AuctionSniper.SNIPER_STATUS_NAME)).hasText(equalTo(statusText));
+        new JLabelDriver(this, named(MainWindow.SNIPER_STATUS_NAME)).hasText(equalTo(statusText));
     }
 }
