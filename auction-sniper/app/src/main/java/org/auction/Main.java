@@ -10,6 +10,8 @@ import java.net.InetAddress;
 import javax.swing.SwingUtilities;
 
 import org.auction.ui.MainWindow;
+import org.auction.xmpp.AuctionEventListener;
+import org.auction.xmpp.AuctionMessageTranslator;
 import org.jivesoftware.smack.chat2.Chat;
 import org.jivesoftware.smack.chat2.ChatManager;
 import org.jivesoftware.smack.tcp.XMPPTCPConnection;
@@ -17,7 +19,7 @@ import org.jivesoftware.smack.tcp.XMPPTCPConnectionConfiguration;
 import org.jxmpp.jid.EntityBareJid;
 import org.jxmpp.jid.impl.JidCreate;
 
-public class Main {
+public class Main implements AuctionEventListener {
     private static final int ARG_HOSTNAME = 0;
     private static final int ARG_USERNAME = 1;
     private static final int ARG_PASSWORD = 2;
@@ -45,11 +47,7 @@ public class Main {
             throws Exception {
         disconnectWhenUICloses(connection);
         ChatManager chatManager = ChatManager.getInstanceFor(connection);
-        chatManager.addIncomingListener((from, message, chat) -> {
-            SwingUtilities.invokeLater(() -> {
-                ui.showStatus(MainWindow.STATUS_LOST);
-            });
-        });
+        chatManager.addIncomingListener(new AuctionMessageTranslator(this));
 
         // Create a new chat session with the desired recipient
         EntityBareJid jid = JidCreate.entityBareFrom(auctionId(itemId, connection));
@@ -92,5 +90,16 @@ public class Main {
 
     private static String auctionId(String itemId, XMPPTCPConnection connection) {
         return String.format(AUCTION_ID_FORMAT, itemId, connection.getXMPPServiceDomain().toString());
+    }
+
+    @Override
+    public void auctionClosed() {
+        SwingUtilities.invokeLater(() -> {
+            ui.showStatus(MainWindow.STATUS_LOST);
+        });
+    }
+
+    @Override
+    public void currentPrice(int i, int j) {
     }
 }

@@ -98,7 +98,7 @@ class FakeAuctionServer {
         Message message = StanzaBuilder.buildMessage()
                 .ofType(Message.Type.chat)
                 .to(currentChat.getXmppAddressOfChatPartner())
-                .setBody("")
+                .setBody("SOL Version: 1.1; Event: CLOSE;")
                 .build();
         try {
             currentChat.send(message);
