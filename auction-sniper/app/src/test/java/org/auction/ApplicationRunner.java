@@ -18,6 +18,7 @@ class ApplicationRunner {
     public static final String SNIPER_ID = "sniper";
     public static final String SNIPER_PASSWORD = "sniper";
     public static final String XMPP_HOSTNAME = "localhost"; // this needs to be env variable ?
+    public static final String SNIPER_XMPP_ID = SNIPER_ID + "@" + XMPP_HOSTNAME;;
     private AuctionSniperDriver driver;
 
     public void startBiddingIn(final FakeAuctionServer auction) {
@@ -39,6 +40,10 @@ class ApplicationRunner {
 
     public void showsSniperHasLostAuction() {
         driver.showsSniperStatus("Lost");
+    }
+
+    public void hasShownSniperIsBidding() {
+        driver.showsSniperStatus(MainWindow.STATUS_BIDDING);
     }
 
     public void stop() {

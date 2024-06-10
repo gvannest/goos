@@ -4,21 +4,22 @@
  */
 package org.auction;
 
+import static org.hamcrest.Matchers.is;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import java.net.InetAddress;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.TimeUnit;
-import java.util.function.Consumer;
 
+import org.hamcrest.Matcher;
+import org.hamcrest.MatcherAssert;
 import org.jivesoftware.smack.chat2.Chat;
 import org.jivesoftware.smack.chat2.ChatManager;
-import org.jivesoftware.smack.chat2.IncomingChatMessageListener;
 import org.jivesoftware.smack.packet.Message;
 import org.jivesoftware.smack.packet.StanzaBuilder;
 import org.jivesoftware.smack.tcp.XMPPTCPConnection;
 import org.jivesoftware.smack.tcp.XMPPTCPConnectionConfiguration;
-import org.jxmpp.jid.EntityBareJid;
 
 class FakeAuctionServer {
     private final SingleMessageListener messageListener = new SingleMessageListener();
@@ -62,22 +63,34 @@ class FakeAuctionServer {
         }
         // Get the ChatManager instance
         chatManager = ChatManager.getInstanceFor(connection);
-        chatManager.addIncomingListener(messageListener);
+        chatManager.addIncomingListener((from, message, chat) -> {
+            currentChat = chat;
+            messageListener.newIncomingMessage(message);
+        });
+
     }
 
     public String getItemId() {
         return itemId;
     }
 
-    public void hasReceivedJoinRequestFromSniper() {
+    public void reportPrice(int price, int increment, String bidder) {
         try {
-            messageListener.receivesAMessage((chat) -> {
-                assertNotNull(chat);
-                currentChat = chat;
-            });
-        } catch (InterruptedException e) {
+            currentChat
+                    .send(String.format("SOLVersion: 1.1; Event: PRICE; CurrentPrice: %d; Increment: %d; Bidder: %s;",
+                            price, increment, bidder));
+        } catch (Exception e) {
             throw new RuntimeException(e);
         }
+    }
+
+    public void hasReceivedBid(int bid, String sniperId) {
+        receivesAMessageMatching(sniperId,
+                is(String.format(Main.BID_COMMAND_FORMAT, bid)));
+    }
+
+    public void hasReceivedJoinRequestFromSniper(String sniperId) {
+        receivesAMessageMatching(sniperId, is(Main.JOIN_COMMAND_FORMAT));
     }
 
     public void announceClosed() {
@@ -94,27 +107,32 @@ class FakeAuctionServer {
         }
     }
 
+    public void receivesAMessageMatching(String sniperId, Matcher<? super String> messageMatcher) {
+        messageListener.receivesAMessage(messageMatcher);
+        assertEquals(currentChat.getXmppAddressOfChatPartner(), sniperId);
+    }
+
     public void stop() {
         connection.disconnect();
     }
 }
 
-class SingleMessageListener implements IncomingChatMessageListener {
+class SingleMessageListener {
 
-    private final ArrayBlockingQueue<IncomingMessage> messages = new ArrayBlockingQueue<>(1);
+    private final ArrayBlockingQueue<Message> messages = new ArrayBlockingQueue<>(1);
 
-    @Override
-    public void newIncomingMessage(EntityBareJid from, Message message, Chat chat) {
-        messages.add(new IncomingMessage(from, message, chat));
+    public void newIncomingMessage(Message message) {
+        messages.add(message);
     }
 
-    public void receivesAMessage(Consumer<Chat> setAuctionServerChatSession) throws InterruptedException {
-        var message = messages.poll(5, TimeUnit.SECONDS);
-        assertNotNull(message.body);
-        setAuctionServerChatSession.accept(message.chat);
-    }
-
-    private record IncomingMessage(EntityBareJid from, Message body, Chat chat) {
+    public void receivesAMessage(Matcher<? super String> messageMatcher) {
+        try {
+            var message = messages.poll(5, TimeUnit.SECONDS);
+            assertNotNull(message);
+            MatcherAssert.assertThat(message.getBody(), messageMatcher);
+        } catch (InterruptedException e) {
+            throw new RuntimeException();
+        }
     }
 
 }

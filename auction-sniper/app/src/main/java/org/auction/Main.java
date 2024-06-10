@@ -3,6 +3,8 @@
  */
 package org.auction;
 
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
 import java.net.InetAddress;
 
 import javax.swing.SwingUtilities;
@@ -23,6 +25,8 @@ public class Main {
 
     private static final String ITEM_ID_AS_LOGIN = "auction-%s";
     private static final String AUCTION_ID_FORMAT = ITEM_ID_AS_LOGIN + "@%s";
+    public static final String JOIN_COMMAND_FORMAT = "SQLVersion: 1.1; Command: JOIN;";
+    public static final String BID_COMMAND_FORMAT = "SQLVersion: 1.1; Command: BID; Price: %d;";
 
     private MainWindow ui;
     private Chat chatNotToBeGCd;
@@ -39,6 +43,7 @@ public class Main {
 
     private void joinAuction(XMPPTCPConnection connection, String itemId)
             throws Exception {
+        disconnectWhenUICloses(connection);
         ChatManager chatManager = ChatManager.getInstanceFor(connection);
         chatManager.addIncomingListener((from, message, chat) -> {
             SwingUtilities.invokeLater(() -> {
@@ -51,7 +56,16 @@ public class Main {
         Chat chat = chatManager.chatWith(jid);
         this.chatNotToBeGCd = chat;
         // Send a message to the recipient
-        chat.send("Hello, this is a test message!");
+        chat.send(JOIN_COMMAND_FORMAT);
+    }
+
+    private void disconnectWhenUICloses(XMPPTCPConnection connection) {
+        ui.addWindowListener(new WindowAdapter() {
+            @Override
+            public void windowClosed(WindowEvent windowEvent) {
+                connection.disconnect();
+            }
+        });
     }
 
     private static XMPPTCPConnection conection(String hostname, String username, String password)
