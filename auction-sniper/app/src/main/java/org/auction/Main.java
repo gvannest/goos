@@ -10,8 +10,10 @@ import java.net.InetAddress;
 import javax.swing.SwingUtilities;
 
 import org.auction.ui.MainWindow;
-import org.auction.xmpp.AuctionEventListener;
+import org.auction.xmpp.Auction;
 import org.auction.xmpp.AuctionMessageTranslator;
+import org.auction.xmpp.AuctionSniper;
+import org.auction.xmpp.SniperListener;
 import org.jivesoftware.smack.chat2.Chat;
 import org.jivesoftware.smack.chat2.ChatManager;
 import org.jivesoftware.smack.tcp.XMPPTCPConnection;
@@ -19,7 +21,7 @@ import org.jivesoftware.smack.tcp.XMPPTCPConnectionConfiguration;
 import org.jxmpp.jid.EntityBareJid;
 import org.jxmpp.jid.impl.JidCreate;
 
-public class Main implements AuctionEventListener {
+public class Main implements SniperListener {
     private static final int ARG_HOSTNAME = 0;
     private static final int ARG_USERNAME = 1;
     private static final int ARG_PASSWORD = 2;
@@ -47,12 +49,24 @@ public class Main implements AuctionEventListener {
             throws Exception {
         disconnectWhenUICloses(connection);
         ChatManager chatManager = ChatManager.getInstanceFor(connection);
-        chatManager.addIncomingListener(new AuctionMessageTranslator(this));
 
         // Create a new chat session with the desired recipient
         EntityBareJid jid = JidCreate.entityBareFrom(auctionId(itemId, connection));
         Chat chat = chatManager.chatWith(jid);
         this.chatNotToBeGCd = chat;
+
+        Auction auction = new Auction() {
+            @Override
+            public void bid(int biddingPrice) {
+                try {
+                    chat.send(String.format(BID_COMMAND_FORMAT, biddingPrice));
+                } catch (Exception e) {
+                    throw new RuntimeException(e);
+                }
+            };
+        };
+        chatManager.addIncomingListener(new AuctionMessageTranslator(new AuctionSniper(this, auction)));
+
         // Send a message to the recipient
         chat.send(JOIN_COMMAND_FORMAT);
     }
@@ -93,13 +107,17 @@ public class Main implements AuctionEventListener {
     }
 
     @Override
-    public void auctionClosed() {
+    public void sniperLost() {
         SwingUtilities.invokeLater(() -> {
             ui.showStatus(MainWindow.STATUS_LOST);
         });
     }
 
     @Override
-    public void currentPrice(int i, int j) {
+    public void sniperBidding() {
+        SwingUtilities.invokeLater(() -> {
+            ui.showStatus(MainWindow.STATUS_BIDDING);
+        });
     }
+
 }
