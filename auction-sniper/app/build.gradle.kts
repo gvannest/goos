@@ -16,14 +16,9 @@ repositories {
 }
 
 dependencies {
-    // Use JUnit Jupiter for testing.
-    testImplementation(libs.junit.jupiter)
-
-    testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 
     // This dependency is used by the application.
     implementation(libs.guava)
-
     implementation("org.igniterealtime.smack:smack-core:4.4.8")
     // Over tcp connection
     implementation("org.igniterealtime.smack:smack-tcp:4.4.8")
@@ -35,6 +30,10 @@ dependencies {
     implementation("org.igniterealtime.smack:smack-resolver-minidns:4.4.8")
     implementation("org.igniterealtime.smack:smack-java8:4.4.8")
 
+
+    // Test dependencies
+    testImplementation(libs.junit.jupiter)
+    testRuntimeOnly("org.junit.platform:junit-platform-launcher")
     testImplementation("com.googlecode.windowlicker:windowlicker-swing:r268")
 }
 
