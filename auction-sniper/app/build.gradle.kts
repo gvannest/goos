@@ -53,7 +53,19 @@ application {
 tasks.named<Test>("test") {
     // Use JUnit Platform for unit tests.
     useJUnitPlatform()
+     doFirst {
+        // Find the JMockit jar in the classpath
+        val jmockitJar = classpath.find { it.name.contains("jmockit") }?.absolutePath
+
+        // Add JVM argument if the JMockit jar is found
+        if (jmockitJar != null) {
+            jvmArgs("-javaagent:$jmockitJar")
+        } else {
+            logger.warn("JMockit jar not found in classpath")
+        }
+    }
 }
+
 
 tasks.jar {
     manifest {

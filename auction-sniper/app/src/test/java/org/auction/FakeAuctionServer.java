@@ -4,14 +4,6 @@
  */
 package org.auction;
 
-import static org.hamcrest.Matchers.is;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-
-import java.net.InetAddress;
-import java.util.concurrent.ArrayBlockingQueue;
-import java.util.concurrent.TimeUnit;
-
 import org.hamcrest.Matcher;
 import org.hamcrest.MatcherAssert;
 import org.jivesoftware.smack.chat2.Chat;
@@ -21,11 +13,20 @@ import org.jivesoftware.smack.packet.StanzaBuilder;
 import org.jivesoftware.smack.tcp.XMPPTCPConnection;
 import org.jivesoftware.smack.tcp.XMPPTCPConnectionConfiguration;
 
+import java.net.InetAddress;
+import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.TimeUnit;
+
+import static org.hamcrest.Matchers.is;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+
 class FakeAuctionServer {
     private final SingleMessageListener messageListener = new SingleMessageListener();
 
     private static final String ITEM_ID_AS_LOGIN = "auction-%s";
     private static final String AUCTION_PASSWORD = "auction";
+    private static final String RESOURCE = "Auction";
     private static final String XMPP_HOSTNAME = "localhost";
     private static final int XMPP_PORT = 5222;
 
@@ -43,8 +44,9 @@ class FakeAuctionServer {
                     .setPort(XMPP_PORT)
                     .setXmppDomain(XMPP_HOSTNAME)
                     .setUsernameAndPassword(String.format(ITEM_ID_AS_LOGIN, itemId), AUCTION_PASSWORD)
+                    .setResource(RESOURCE)
                     .setSecurityMode(XMPPTCPConnectionConfiguration.SecurityMode.disabled) // Disable security for local
-                                                                                           // development
+                    // development
                     .build();
             this.connection = new XMPPTCPConnection(config);
 
@@ -109,7 +111,7 @@ class FakeAuctionServer {
 
     public void receivesAMessageMatching(String sniperId, Matcher<? super String> messageMatcher) {
         messageListener.receivesAMessage(messageMatcher);
-        assertEquals(currentChat.getXmppAddressOfChatPartner(), sniperId);
+        assertEquals(currentChat.getXmppAddressOfChatPartner() + "/" + RESOURCE, sniperId);
     }
 
     public void stop() {
